@@ -1,0 +1,2600 @@
+==========================================
+  DEMOSTRACIÓN DEL PROYECTO
+  Satellite Thermal Control System
+  RISC-V RV32I - Assembly Implementation
+==========================================
+
+[0;34m[1/5] Generando datos de temperatura...[0m
+Generated temps_baseline.bin with 100 bytes
+First 10 values: [55, 58, 62, 67, 72, 78, 85, 92, 95, 98]
+Anomaly points (>90): [7, 8, 9, 10, 11, 32, 33, 34, 35, 36, 37, 97, 98, 99]
+[0;32m✓ Datos generados[0m
+
+[0;34m[2/5] Limpiando compilaciones anteriores...[0m
+rm -rf build bin
+[0;32m✓ Limpieza completa[0m
+
+[0;34m[3/5] Compilando proyecto...[0m
+mkdir -p build
+riscv64-unknown-elf-gcc -march=rv32i_zicsr_zifencei -mabi=ilp32 -O2 -Wall -Wextra -ffreestanding -nostdlib -mcmodel=medany -Iinclude -c src/kernel/main.c -o build/src/kernel/main.o
+riscv64-unknown-elf-gcc -march=rv32i_zicsr_zifencei -mabi=ilp32 -O2 -Wall -Wextra -ffreestanding -nostdlib -mcmodel=medany -Iinclude -c src/kernel/metrics.c -o build/src/kernel/metrics.o
+riscv64-unknown-elf-gcc -march=rv32i_zicsr_zifencei -mabi=ilp32 -O2 -Wall -Wextra -ffreestanding -nostdlib -mcmodel=medany -Iinclude -c src/kernel/process_manager.c -o build/src/kernel/process_manager.o
+riscv64-unknown-elf-gcc -march=rv32i_zicsr_zifencei -mabi=ilp32 -O2 -Wall -Wextra -ffreestanding -nostdlib -mcmodel=medany -Iinclude -c src/kernel/scheduler.c -o build/src/kernel/scheduler.o
+riscv64-unknown-elf-as -march=rv32i_zicsr_zifencei -mabi=ilp32 -Iinclude -c src/kernel/boot.S -o build/src/kernel/boot.o
+riscv64-unknown-elf-as -march=rv32i_zicsr_zifencei -mabi=ilp32 -Iinclude -c src/kernel/context_switch.S -o build/src/kernel/context_switch.o
+riscv64-unknown-elf-as -march=rv32i_zicsr_zifencei -mabi=ilp32 -Iinclude -c src/processes/process_p1.S -o build/src/processes/process_p1.o
+riscv64-unknown-elf-as -march=rv32i_zicsr_zifencei -mabi=ilp32 -Iinclude -c src/processes/process_p2.S -o build/src/processes/process_p2.o
+riscv64-unknown-elf-as -march=rv32i_zicsr_zifencei -mabi=ilp32 -Iinclude -c src/processes/process_p3.S -o build/src/processes/process_p3.o
+riscv64-unknown-elf-gcc -march=rv32i_zicsr_zifencei -mabi=ilp32 -O2 -Wall -Wextra -ffreestanding -nostdlib -mcmodel=medany -Iinclude -c src/drivers/uart.c -o build/src/drivers/uart.o
+riscv64-unknown-elf-gcc -march=rv32i_zicsr_zifencei -mabi=ilp32 -O2 -Wall -Wextra -ffreestanding -nostdlib -mcmodel=medany -Iinclude -c src/lib/satellite.c -o build/src/lib/satellite.o
+mkdir -p bin
+riscv64-unknown-elf-gcc -march=rv32i_zicsr_zifencei -mabi=ilp32 -nostdlib -nostartfiles -T linker.ld -Wl,--no-relax -o bin/satellite_os.elf build/src/kernel/main.o build/src/kernel/metrics.o build/src/kernel/process_manager.o build/src/kernel/scheduler.o build/src/kernel/boot.o build/src/kernel/context_switch.o build/src/processes/process_p1.o build/src/processes/process_p2.o build/src/processes/process_p3.o build/src/drivers/uart.o build/src/lib/satellite.o -lgcc
+/usr/lib/gcc/riscv64-unknown-elf/13.2.0/../../../riscv64-unknown-elf/bin/ld: warning: bin/satellite_os.elf has a LOAD segment with RWX permissions
+riscv64-unknown-elf-objdump -D bin/satellite_os.elf > bin/satellite_os.asm
+[0;32m✓ Compilación exitosa[0m
+
+[0;34m[4/5] Verificando binario generado...[0m
+   text	   data	    bss	    dec	    hex	filename
+  14576	   4096	    584	  19256	   4b38	bin/satellite_os.elf
+[0;32m✓ Binario correcto (~19KB)[0m
+
+[0;34m[5/5] Ejecutando sistema (60 segundos)...[0m
+[1;33mPresiona Ctrl+C para detener antes[0m
+
+Loading temperature data from data/temps_baseline.bin to address 0x80020000
+qemu-system-riscv32 -machine virt -nographic -bios none -kernel bin/satellite_os.elf \
+	-device loader,file=data/temps_baseline.bin,addr=0x80020000
+
+=== Satellite Thermal Control System ===
+RISC-V RV32I Kernel
+UTEC - Computing Systems Final Project
+
+[METRICS] Performance tracking initialized
+[INIT] Performance metrics initialized
+[INIT] Satellite state initialized
+[PROCESS] All processes initialized
+[INIT] Processes initialized
+[INIT] Starting scheduler in BASELINE mode
+[SCHEDULER] Initialized in mode: BASELINE (Sequential)
+[KERNEL] Starting process execution...
+
+
+[SCHEDULER] Starting execution loop
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:55C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:55C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:55C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 1 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:58C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:58C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:58C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 2 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:62C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:62C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:62C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 3 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:67C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:67C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:67C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 4 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:72C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:72C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:72C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 5 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:78C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:78C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:78C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 6 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:85C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:85C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:85C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 7 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:92C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+
+*** [P2] COOLING SYSTEM ACTIVATED ***
+[P2] Temperature exceeded threshold: TEMP:92C
+[P2] Deploying thermal management techniques...
+[P2] Activation PC: 0x80001AA0
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:92C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 8 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:95C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:95C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:95C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 9 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:98C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:98C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:98C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 10 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:96C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:96C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:96C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 11 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:94C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:94C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:94C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 12 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:90C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:90C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:90C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 13 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:87C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:87C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:87C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 14 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:82C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:82C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:82C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 15 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:76C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:76C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:76C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 16 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:70C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:70C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:70C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 17 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:65C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:65C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:65C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 18 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:61C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:61C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:61C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 19 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:58C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:58C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:58C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 20 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:56C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:56C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:56C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 21 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:54C
+
+
+--- Executing Process 2 ---
+
+*** [P2] COOLING SYSTEM DEACTIVATED ***
+[P2] Temperature normalized: TEMP:54C
+[P2] Thermal management standby mode
+[P2] Deactivation PC: 0x80001B50
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:54C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 22 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:52C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:52C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:52C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 23 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:50C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:50C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:50C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 24 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:49C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:49C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:49C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 25 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:51C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:51C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:51C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 26 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:54C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:54C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:54C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 27 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:58C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:58C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:58C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 28 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:63C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:63C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:63C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 29 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:68C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:68C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:68C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 30 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:74C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:74C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:74C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 31 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:82C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:82C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:82C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 32 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:91C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+
+*** [P2] COOLING SYSTEM ACTIVATED ***
+[P2] Temperature exceeded threshold: TEMP:91C
+[P2] Deploying thermal management techniques...
+[P2] Activation PC: 0x80001AA0
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:91C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 33 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:97C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:97C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:97C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 34 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:99C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:99C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:99C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 35 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:98C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:98C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:98C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 36 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:95C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:95C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:95C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 37 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:91C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:91C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:91C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 38 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:86C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:86C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:86C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 39 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:80C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:80C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:80C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 40 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:74C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:74C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:74C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 41 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:68C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:68C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:68C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 42 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:62C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:62C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:62C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 43 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:57C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:57C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:57C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 44 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:53C
+
+
+--- Executing Process 2 ---
+
+*** [P2] COOLING SYSTEM DEACTIVATED ***
+[P2] Temperature normalized: TEMP:53C
+[P2] Thermal management standby mode
+[P2] Deactivation PC: 0x80001B50
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:53C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 45 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:50C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:50C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:50C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 46 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:48C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:48C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:48C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 47 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:47C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:47C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:47C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 48 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:46C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:46C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:46C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 49 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:46C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:46C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:46C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 50 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:45C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:45C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:45C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 51 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:45C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:45C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:45C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 52 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:46C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:46C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:46C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 53 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:47C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:47C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:47C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 54 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:48C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:48C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:48C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 55 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:49C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:49C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:49C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 56 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:50C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:50C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:50C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 57 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:51C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:51C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:51C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 58 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:52C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:52C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:52C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 59 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:53C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:53C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:53C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 60 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:54C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:54C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:54C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 61 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:55C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:55C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:55C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 62 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:56C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:56C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:56C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 63 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:57C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:57C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:57C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 64 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:58C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:58C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:58C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 65 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:59C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:59C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:59C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 66 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:60C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:60C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:60C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 67 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:61C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:61C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:61C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 68 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:62C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:62C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:62C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 69 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:63C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:63C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:63C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 70 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:64C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:64C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:64C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 71 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:65C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:65C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:65C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 72 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:66C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:66C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:66C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 73 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:67C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:67C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:67C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 74 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:68C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:68C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:68C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 75 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:69C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:69C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:69C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 76 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:70C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:70C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:70C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 77 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:71C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:71C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:71C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 78 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:72C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:72C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:72C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 79 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:73C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:73C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:73C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 80 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:74C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:74C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:74C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 81 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:75C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:75C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:75C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 82 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:76C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:76C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:76C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 83 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:77C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:77C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:77C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 84 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:78C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:78C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:78C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 85 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:79C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:79C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:79C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 86 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:80C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:80C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:80C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 87 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:81C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:81C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:81C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 88 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:82C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:82C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:82C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 89 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:83C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:83C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:83C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 90 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:84C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:84C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:84C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 91 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:85C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:85C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:85C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 92 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:86C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:86C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:86C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 93 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:87C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:87C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:87C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 94 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:88C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:88C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:88C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 95 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] TRANSMISSION PHASE | Sending data... | Temp: TEMP:89C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:89C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:89C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 96 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:90C
+
+
+--- Executing Process 2 ---
+[P2] Cooling standby | Temp: TEMP:90C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:90C
+[P3] Cooling System: STANDBY
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: NOMINAL
+==================================================
+
+========================================
+[SCHEDULER] Cycle 97 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:91C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+
+*** [P2] COOLING SYSTEM ACTIVATED ***
+[P2] Temperature exceeded threshold: TEMP:91C
+[P2] Deploying thermal management techniques...
+[P2] Activation PC: 0x80001AA0
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:91C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 98 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:92C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:92C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:92C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 99 completed
+========================================
+
+
+
+--- Executing Process 1 ---
+[P1] SENSING PHASE | Reading sensor... | Temperature: TEMP:93C
+
+*** [P1] ALERT: Temperature limit exceeded! ***
+[P1] PC captured at: 0x8000197C
+
+
+--- Executing Process 2 ---
+[P2] Cooling active | Temp: TEMP:93C
+
+
+--- Executing Process 3 ---
+
+======== [P3] SATELLITE TELEMETRY DISPLAY ========
+[P3] Temperature: TEMP:93C
+[P3] Cooling System: ACTIVE
+[P3] Orbital Zone: BRIGHT (Sun exposure)
+[P3] Orbit Minute: 0 / 100
+[P3] System Status: WARNING - Temperature out of nominal range
+==================================================
+
+========================================
+[SCHEDULER] Cycle 100 completed
+========================================
+
+
+
+[SCHEDULER] Execution completed
+
+
+
+╔════════════════════════════════════════════════════════╗
+║           PERFORMANCE METRICS SUMMARY                 ║
+╚════════════════════════════════════════════════════════╝
+
+SCHEDULER METRICS:
+  Total cycles:        100
+  Context switches:    0
+  Process switches:    300
+
+PROCESS EXECUTIONS:
+  P1 (Temp Acq):       100 (33%)
+  P2 (Cooling):        100 (33%)
+  P3 (Display):        100 (33%)
+
+TEMPERATURE METRICS:
+  Readings:            0
+  Transmissions:       16
+  Anomalies (>90C):    0
+
+COOLING SYSTEM:
+  Activations:         3
+  Deactivations:       2
+  Total active time:   26 min
+
+UART METRICS:
+  Bytes sent:          81359
+  Messages sent:       300
+
+════════════════════════════════════════════════════════
+
+
+╔════════════════════════════════════════════════════════╗
+║          DETAILED PERFORMANCE ANALYSIS                ║
+╚════════════════════════════════════════════════════════╝
+
+SCHEDULER EFFICIENCY:
+  Avg processes per cycle: 3
+  Context switch rate:     0%
+
+TEMPERATURE ANALYSIS:
+  Anomaly rate:            N/A
+  Transmission efficiency: N/A
+
+COOLING SYSTEM ANALYSIS:
+  Activation efficiency:   N/A
+  Avg active time:         8 min per activation
+
+COMMUNICATION ANALYSIS:
+  Avg bytes per message:   274 bytes
+
+MEMORY USAGE ESTIMATE:
+  Total stack allocated:   12288 bytes
+  PCB overhead:            396 bytes (132 per process)
+
+════════════════════════════════════════════════════════
+
+[KERNEL] Execution completed successfully
+qemu-system-riscv32: terminating on signal 15 from pid 13523 (make)
+
+==========================================
+[0;32m✓ DEMOSTRACIÓN COMPLETA[0m
+==========================================
+
+Para ver solo activaciones de cooling:
+  timeout 60 make run-with-data 2>&1 | grep -A 5 ACTIVATED
+
+Para cambiar escenario:
+  Editar src/kernel/main.c línea 32
+  Luego: make clean && make all
+
